@@ -218,7 +218,6 @@ class MyWindow(QMainWindow):
             self.connect.setText("Connect")
             self.flag_connect = 0
 
-
     def measure_force_callback(self):
         pass
 

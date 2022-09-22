@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(ornibibot)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++17)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -107,9 +107,9 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES OrnibiBot
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+  # INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  # CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
   CATKIN_DEPENDS trueBody dThetaVel
 )
@@ -121,7 +121,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include ${catkin_INCLUDE_DIRS}
+  include/ 
+  ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -141,6 +142,7 @@ add_dependencies( ${catkin_EXPORTED_TARGETS})
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(main src/main.cpp)
 add_executable(test_code src/test_code.cpp)
+add_executable(OrnibiBot src/OrnibiBot.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
