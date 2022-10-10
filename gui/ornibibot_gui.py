@@ -1,16 +1,11 @@
-from random import Random, random
-import rospy
-from geometry_msgs.msg import WrenchStamped
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget
-import sys
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-import numpy as np
-
 
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=400, height=400, dpi=100):
@@ -18,9 +13,10 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
-class MyWindow(QMainWindow):
+
+class uiDialog(QMainWindow):
     def __init__(self):
-        super(MyWindow, self).__init__()
+        super(uiDialog, self).__init__()
         self.setObjectName("MainWindow")
         # self.resize(740, 543)
         self.setFixedSize(840, 840)
@@ -28,7 +24,6 @@ class MyWindow(QMainWindow):
         self.setDocumentMode(True)
         self.setGeometry(200, 200, 300, 300)
         self.setWindowTitle("TESTING")
-        rospy.init_node('GUI', anonymous=False)
 
         self.initUI()
 
@@ -188,60 +183,3 @@ class MyWindow(QMainWindow):
         self.graph_layout.addWidget(self.plotter_moment)
 
         self.show()
-    
-    def callback_force_sensor(self, msg):
-        self.force_x.append(msg.wrench.force.x)
-        self.force_y.append(msg.wrench.force.y)
-        self.force_z.append(msg.wrench.force.z)
-        np.append(self.force, [msg.wrench.force.x,msg.wrench.force.y,msg.wrench.force.z])
-        self.time.append(rospy.Time.now().to_nsec()/1000)
-        self.counter_force_data +=1
-        # self.index = self.counter_force_data
-        # pass
-
-
-    def update_data(self):
-        self.xdata.append(self.time)
-        self.ydata.append(self.force_x)
-        self.canvas.axes.cla()
-        self.canvas.axes.plot(self.xdata, self.ydata, 'r')
-
-        self.canvas.draw()
-        self.canvas.flush_events()
-
-    def connect_callback(self):
-        
-        if  self.flag_connect == 0:
-            self.connect.setText("Disconnect")
-            self.flag_connect = 1
-        else:
-            self.connect.setText("Connect")
-            self.flag_connect = 0
-
-    def measure_force_callback(self):
-        pass
-
-    def initial_callback(self):
-        
-        pass
-        # self.tail_rolling
-        # message = QMessageBox()
-        # message.setWindowTitle("Warn")
-        # message.setText("ROSCORE is not running")
-
-        # return message.exec_()
-
-
-    def update(self):
-        self.label.adjustSize()
-
-
-
-def window():
-    app = QApplication(sys.argv)
-    win = MyWindow()
-
-    win.show()
-    sys.exit(app.exec_())
-
-window()

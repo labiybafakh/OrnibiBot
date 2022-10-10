@@ -1,0 +1,4 @@
+geometry_msgs/WrenchStammped/force force
+geometry_msgs/WrenchStammped/torque moment
+std_msgs/Int16 wing_left
+std_msgs/Int16 wing_right
