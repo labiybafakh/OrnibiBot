@@ -66,11 +66,12 @@ void OrnibiBot::force_callback(const geometry_msgs::WrenchStamped::ConstPtr& wre
         _moment.y = wrench->wrench.torque.y;
         _moment.z = wrench->wrench.torque.z; 
 
-        ROS_INFO_STREAM(_force.thrust);
 }
 
 void OrnibiBot::wing_right_callback(const std_msgs::Int16::ConstPtr& msg){
     wing_position.right = msg->data;
+
+    ROS_INFO_STREAM(msg->data);
 }
 
 void OrnibiBot::wing_left_callback(const std_msgs::Int16::ConstPtr& msg){
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "OrnibibotPC");
 
     // ros::Time time, lastTime;
+    ros::NodeHandle nh;
 
     ros::Rate rate(100);
     

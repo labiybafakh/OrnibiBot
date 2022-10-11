@@ -1,47 +1,41 @@
-#!/usr/bin/env python
-
+from enum import auto
 import rospy
-from std_msgs.msg import Int64MultiArray
-import pygame
+from geometry_msgs.msg import WrenchStamped
+from std_msgs.msg import Int16
+import numpy as np
 
 
-i=5
-yaw     = 0
-pitch   = 0
-roll    = 0
-def callbackIMU(attitude):
-    global yaw, pitch, roll
-    yaw     = attitude.data[0]
-    pitch   = attitude.data[1]
-    roll    = attitude.data[2]
+class OrnibiBot:
+    force = np.zeros(3, dtype=np.float64)
+    moment = np.zeros(3, dtype=np.float64)
+    wing_position={
+        "left":np.zeros(1),
+        "right":np.zeros(1)
+    }
 
+    def __init__(self) -> None:
+        rospy.Subscriber('wing_left', Int16, self.wing_left_callback)
+        rospy.Subscriber('wing_right', Int16, self.wing_right_callback)
+        rospy.Subscriber('leptrino_force_torque/force_torque', WrenchStamped, self.force_callback)
 
-def main():    
-    pygame.init()
-    num_joysticks = pygame.joystick.get_count()
-    if num_joysticks == 0:
-        raise ValueError("No joysticks attached!")
+    def wing_left_callback(self, position):
+        r = self.wing_position["left"] = position.data
+
+        # print(r)
         
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
-    pub     = rospy.Publisher('RC', Int64MultiArray, queue_size=10 )
-    sub     = rospy.Subscriber('IMU', Int64MultiArray, callbackIMU )
-    rospy.init_node('OrnibiBotPC', anonymous=False)
-    r       = rospy.Rate(50)
+    
+    def wing_right_callback(self, position):
+        self.wing_position["right"] = position.data
 
-    while not rospy.is_shutdown():
-        for event in pygame.event.get():
-            pass
-        [throttle, elevator, rudder] = int(joystick.get_axis(1)*-100), int(joystick.get_axis(3)*-100), int(joystick.get_axis(2)*100)
-        #print("{},{},{}".format(throttle,rudder,elevator))        
-        dataRC  = Int64MultiArray(data=[throttle, rudder, elevator])
-        pub.publish(dataRC)
-        print("{},{},{}".format(yaw,pitch,roll))        
+    def force_callback(self, magnitude):
+        self.force = [magnitude.wrench.force.x, magnitude.wrench.force.y, magnitude.wrench.force.z]
+        self.moment = [magnitude.wrench.torque.x, magnitude.wrench.torque.y, magnitude.wrench.torque.z]
 
-        r.sleep()
+        print(self.force)
 
-if __name__ == "__main__":
-    try:
-        main()
-    except rospy.ROSInterruptException: pass
+if __name__ == '__main__':
+    rospy.init_node('OrnibiBot', anonymous=False)
+    robot = OrnibiBot()
 
+    while True:
+        rospy.Rate(100).sleep()
