@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   vectornav
   rqt_gui
   rqt_gui_py
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -56,7 +57,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  OrnibiBot.msg
+  OrnibiBotData.msg
 #   Message2.msg
 )
 
@@ -75,7 +76,11 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(DEPENDENCIES std_msgs)
+generate_messages(
+  DEPENDENCIES 
+  std_msgs
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -111,7 +116,7 @@ catkin_package(
   LIBRARIES ${PROJECT_NAME}
   # CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
-  CATKIN_DEPENDS trueBody dThetaVel
+  CATKIN_DEPENDS trueBody dThetaVel rospy std_msgs geometry_msgs
 )
 
 ###########
@@ -172,9 +177,9 @@ target_link_libraries(test_code ${catkin_LIBRARIES})
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-       src/main.py
-       src/prediction.py
-       src/plotsensor.py
+       scripts/main.py
+      #  src/prediction.py
+      #  src/plotsensor.py
       #  gui/gui.py
        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

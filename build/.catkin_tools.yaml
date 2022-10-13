@@ -1,0 +1,6 @@
+devel_space: /home/ntlab/ornibibot_ws/src/ornibibot/devel
+install: false
+install_space: /home/ntlab/ornibibot_ws/src/ornibibot/install
+profile: default
+source_space: /home/ntlab/ornibibot_ws/src/ornibibot/src
+workspace: /home/ntlab/ornibibot_ws/src/ornibibot
