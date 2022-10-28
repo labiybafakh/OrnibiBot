@@ -28,7 +28,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -58,6 +58,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 add_message_files(
   FILES
   OrnibiBotData.msg
+  joint_data.msg
 #   Message2.msg
 )
 
@@ -177,7 +178,9 @@ target_link_libraries(test_code ${catkin_LIBRARIES})
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-       scripts/main.py
+       scripts/ornibibot_core.py
+       scripts/stream_data.py
+       scripts/plot_data.py
       #  src/prediction.py
       #  src/plotsensor.py
       #  gui/gui.py
