@@ -17,7 +17,7 @@ int main() {
     // Read data from the shared memory segment
     int data = *shared_data;
     while(1){
-    std::cout << std::chrono::milliseconds()<< "Received data: "  << *shared_data << std::endl;
+    std::cout << "Received data: "  << *shared_data << std::endl;
     sleep(1);
 
     }
