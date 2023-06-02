@@ -1,19 +1,12 @@
-#include "Communication.hpp"
+#include "serial.h"
 
-Communication::Communication(){
 
-}
+// std::vector<std::byte> receiveData(){
+//     std::vector<std::byte> received_data;
+//     received_data.reserve(16);
 
-Communication::~Communication(){
-
-}
-
-std::vector<std::byte> receiveData(){
-    std::vector<std::byte> received_data;
-    received_data.reserve(16);
-
-    return received_data;
-} 
+//     return received_data;
+// } 
 
 bool Communication::decodePacket(){
 

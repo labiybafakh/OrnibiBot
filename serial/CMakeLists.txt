@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
-project(serial-handler)
+project(serial)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
+
+enable_language(C)
+enable_language(CXX)
 
 find_package(Boost REQUIRED COMPONENTS)
 
@@ -16,16 +20,16 @@ include_directories(
 
 
 # Add the executable for the sender program
-add_executable(comm src/comm.cpp)
-add_executable(test src/test.cpp)
+# add_executable(comm src/comm.cpp)
+add_executable(test src/test.c)
 
 
 # Link the required libraries (e.g., pthread, rt)
-target_link_libraries(comm pthread ${boost_LIBRARIES})
-target_link_libraries(test ${boost_LIBRARIES})
+# target_link_libraries(comm pthread ${boost_LIBRARIES})
+target_link_libraries(test)
 
 
 # Conditionally link the rt library if not building on macOS
-if (NOT APPLE)
-    target_link_libraries(comm pthread ${boost_LIBRARIES})
-endif()
+# if (NOT APPLE)
+#     target_link_libraries(comm pthread ${boost_LIBRARIES})
+# endif()

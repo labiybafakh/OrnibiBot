@@ -1,5 +1,5 @@
-#ifndef COMM_HPP
-#define COMM_HPP
+#ifndef COMMUNICATION_HPP
+#define COMMUNICATION_HPP
 
 #include <iostream>
 #include <vector>
@@ -30,8 +30,8 @@ private:
 
     boost::asio::streambuf serial_buffer;
     boost::asio::io_context io;
-    boost::asio::steady_timer timer(io, std::chrono::microseconds(50));
-    boost::asio::serial_port serial_port(io);
+    // boost::asio::steady_timer timer;
+    boost::asio::serial_port serial_port(io,);
     std::string portInterface = "/dev/ttyACMO";
     std::vector<std::byte> data;
     
