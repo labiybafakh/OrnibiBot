@@ -1,47 +1,24 @@
-#ifndef COMMUNICATION_HPP
-#define COMMUNICATION_HPP
+#ifndef DATA_H
+#define DATA_H
 
-#include <iostream>
-#include <vector>
-#include "boost/asio.hpp"
-#include "boost/asio/io_service.hpp"
-#include "boost/asio/serial_port.hpp"
+#include <stdlib.h>
+#include <stdio.h>
 
+typedef struct{
+    uint16_t timestamp;    // 2 bytes
+    float positionLeft;  // 2 bytes
+    float positionRight; // 2 bytes
+    float currentLeft;   // 2 bytes
+    float currentRight;  // 2 bytes
+    float voltageLeft;   // 2 bytes
+    float voltageRight;  // 2 bytes
+} PacketSerial;
 
-class Communication{
-private:
-    struct packetData
-    {
-        uint16_t timestamp;    // 2 bytes
-        int16_t positionLeft;  // 2 bytes
-        int16_t positionRight; // 2 bytes
-        int16_t currentLeft;   // 2 bytes
-        int16_t currentRight;  // 2 bytes
-        int16_t voltageLeft;   // 2 bytes
-        int16_t voltageRight;  // 2 bytes
-    };
+typedef struct{
+    int serial_port;
+    __uint8_t* buffer_serial;
+} SerialPort;
 
-    packetData packetSerial;
-    packetData *_packetSerial = &packetSerial;
-    
-    int16_t encodeFloatToInt(float value);
-    float decodeFloatToInt(int16_t value);
-
-
-    boost::asio::streambuf serial_buffer;
-    boost::asio::io_context io;
-    // boost::asio::steady_timer timer;
-    boost::asio::serial_port serial_port(io,);
-    std::string portInterface = "/dev/ttyACMO";
-    std::vector<std::byte> data;
-    
-
-public:
-    boost::asio::streambuf *_serial_buffer = &serial_buffer;
-    std::string *_port_interface = &portInterface;
-    Communication();
-    ~Communication();
-    bool decodePacket();
-}
+void decodePacket(SerialPort *data_in, PacketSerial *data_out);
 
 #endif

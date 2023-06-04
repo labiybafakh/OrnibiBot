@@ -1,24 +1,14 @@
 #include "serial.h"
 
 
-// std::vector<std::byte> receiveData(){
-//     std::vector<std::byte> received_data;
-//     received_data.reserve(16);
+// inline void decodePacket(SerialPort &data_in, PacketSerial &data_out ){
 
-//     return received_data;
-// } 
-
-bool Communication::decodePacket(){
-
-    decodedPacket.timestamp = encodedData[1] | (encodedData[2] << 8);
-    decodedPacket.positionLeft = encodedData[3] | (encodedData[4] << 8);
-    decodedPacket.positionRight = encodedData[5] | (encodedData[6] << 8);
-    decodedPacket.currentLeft = encodedData[7] | (encodedData[8] << 8);
-    decodedPacket.currentRight = encodedData[9] | (encodedData[10] << 8);
-    decodedPacket.voltageLeft = encodedData[12] | (encodedData[13] << 8);
-    decodedPacket.voltageRight = encodedData[14] | (encodedData[15] << 8);
+//     data_out->timestamp = data_in->buffer_serial[1] | (data_in->buffer_serial[2] << 8);
+//     data_out->positionLeft = data_in->buffer_serial[3] | (data_in->buffer_serial[4] << 8);
+//     data_out->positionRight = data_in->buffer_serial[5] | (data_in->buffer_serial[6] << 8);
+//     data_out->currentLeft = data_in->buffer_serial[7] | (data_in->buffer_serial[8] << 8);
+//     data_out->currentRight = data_in->buffer_serial[9] | (data_in->buffer_serial[10] << 8);
+//     data_out->voltageLeft = data_in->buffer_serial[11] | (data_in->buffer_serial[12] << 8);
+//     data_out->voltageRight = data_in->buffer_serial[13] | (data_in->buffer_serial[14] << 8);
   
-    return 1;
-}
-
-
+// }

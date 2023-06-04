@@ -21,12 +21,12 @@ include_directories(
 
 # Add the executable for the sender program
 # add_executable(comm src/comm.cpp)
-add_executable(test src/test.c)
+add_executable(serial src/main.c)
 
 
 # Link the required libraries (e.g., pthread, rt)
 # target_link_libraries(comm pthread ${boost_LIBRARIES})
-target_link_libraries(test)
+target_link_libraries(serial pthread)
 
 
 # Conditionally link the rt library if not building on macOS
