@@ -1,3 +1,4 @@
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -8,8 +9,10 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
-#define buffer_size 16
+
+#define buffer_size 20
 
 SerialPort *_comm;
 PacketSerial *_data;
@@ -17,52 +20,82 @@ pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct termios options;
 pthread_t _serialThread;
+pthread_t _debugThread;
+bool flag_debug=0;
 
 struct timespec start, end;
 
-inline void decodePacket(SerialPort *data_in, PacketSerial *data_out ){
+void decodePacket(SerialPort *data_in){
     pthread_mutex_lock(&lock);
 
-    data_out->timestamp = data_in->buffer_serial[1] | (data_in->buffer_serial[2] << 8);
-    data_out->positionLeft = (data_in->buffer_serial[3] | (data_in->buffer_serial[4] << 8)) * 0.01f;
-    data_out->positionRight = (data_in->buffer_serial[5] | (data_in->buffer_serial[6] << 8)) * 0.01f;
-    data_out->currentLeft = (data_in->buffer_serial[7] | (data_in->buffer_serial[8] << 8)) * 0.01f;
-    data_out->currentRight = (data_in->buffer_serial[9] | (data_in->buffer_serial[10] << 8)) * 0.01f;
-    data_out->voltageLeft = (data_in->buffer_serial[11] | (data_in->buffer_serial[12] << 8)) * 0.01f;
-    data_out->voltageRight = (data_in->buffer_serial[13] | (data_in->buffer_serial[14] << 8)) * 0.01f;
-
-    printf("Time(ms): %d\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\nVoltage(V):{%.2f, %.2f}\n", 
-    data_out->timestamp, data_out->positionLeft, data_out->currentRight,
-    data_out->currentLeft, data_out->currentRight, data_out->voltageLeft, data_out->voltageRight);
+    _data->timestamp     = data_in->buffer_serial[0] | (data_in->buffer_serial[1] << 8);
+    _data->timestamp     = _data->timestamp | (data_in->buffer_serial[2] << 16);
+    _data->timestamp     = _data->timestamp | (data_in->buffer_serial[3] << 24);
+                            // | (data_in->buffer_serial[2] << 16) | (data_in->buffer_serial[3] << 24) ;
+    _data->desiredLeft   = data_in->buffer_serial[4] | (data_in->buffer_serial[5] << 8);
+    _data->desiredRight  = data_in->buffer_serial[6] | (data_in->buffer_serial[7] << 8);
+    _data->positionLeft  = (data_in->buffer_serial[8] | (data_in->buffer_serial[9] << 8)) * 0.01f;
+    _data->positionRight = (data_in->buffer_serial[10] | (data_in->buffer_serial[11] << 8)) * 0.01f;
+    _data->currentLeft   = (data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8)) * 0.01f;
+    _data->currentRight  = (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8)) * 0.01f;
+    _data->voltageLeft   = (data_in->buffer_serial[16] | (data_in->buffer_serial[17] << 8)) * 0.01f;
+    _data->voltageRight  = (data_in->buffer_serial[18] | (data_in->buffer_serial[19] << 8)) * 0.01f;
 
     pthread_mutex_unlock(&lock);
 
+}
+
+void* debugThread(void *arg){
+    while(1){
+        if(flag_debug){
+        printf("Time(ms): %u\nDesired Position(signal): [%d, %d]\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\nVoltage(V):{%.2f, %.2f}\n",
+               _data->timestamp, _data->desiredLeft, _data->desiredRight, _data->positionLeft, _data->currentRight,
+               _data->currentLeft, _data->currentRight, _data->voltageLeft, _data->voltageRight);
+        }
+        usleep(5000);
+    }
 }
 
 void* serialThread(void *arg){
     while(1){
         clock_gettime(CLOCK_MONOTONIC, &start);
 
-        size_t num_bytes = read(_comm->serial_port, _comm->buffer_serial, buffer_size);
-        if(num_bytes == -1){
-            fprintf(stderr, "Read Failed: %s\n", strerror(errno));
-            continue;
-        }
+        uint8_t available_bytes=0;
 
-        decodePacket(_comm, _data);
+        if(ioctl(_comm->serial_port, FIONREAD, &available_bytes) < 0){
+            //Error Handling
+            fprintf(stderr, "ioctl error: %s\n", strerror(errno));
+            continue;
+            flag_debug=0;
+        }
+        else{
+            if(available_bytes >= buffer_size){
+                size_t num_bytes = read(_comm->serial_port, _comm->buffer_serial, buffer_size);
+
+                if(num_bytes == -1){
+                    fprintf(stderr, "Read Failed: %s\n", strerror(errno));
+                    continue;
+                }
+                else{
+                    decodePacket(_comm);
+                    flag_debug=1;
+                }
+
+            }
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &end);
         double elapsed_time = end.tv_sec - start.tv_sec + 
                             (end.tv_nsec - start.tv_nsec) / 1e9;
         printf("Elapsed time: %.9f seconds\n", elapsed_time);
-        usleep(500);
 
-    
+        usleep(5000);
     }
     return NULL;
 }
 
 int main(int argc, char** argv){
+
     char* _port = argv[1];
 
     //Memory allocation for serial
@@ -93,9 +126,11 @@ int main(int argc, char** argv){
     tcsetattr(_comm->serial_port, TCSANOW, &options);
 
     pthread_create(&_serialThread, NULL, serialThread, NULL);
+    pthread_create(&_debugThread, NULL, debugThread, NULL);
 
     pthread_join(_serialThread, NULL);
-    
+    pthread_join(_debugThread, NULL);
+
     close(_comm->serial_port);
     free(_comm);
     free(_data);

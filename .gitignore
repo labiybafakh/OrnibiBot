@@ -2,3 +2,4 @@ bag
 .DS_Store
 build
 .vscode
+cmake-build-debug

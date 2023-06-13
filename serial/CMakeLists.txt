@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 project(serial)
 
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  MESSAGE("It using Clang")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
