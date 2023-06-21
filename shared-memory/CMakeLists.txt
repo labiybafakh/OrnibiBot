@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(shared-memory)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 #Add the C++ header files
 include_directories(

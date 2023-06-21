@@ -12,7 +12,7 @@ class Communication{
 private:
     struct packetData
     {
-        uint32_t timestamp;    // 2 bytes
+        uint32_t timestamp;    // 4 bytes
         int16_t positionLeft;  // 2 bytes
         int16_t positionRight; // 2 bytes
         int16_t currentLeft;   // 2 bytes

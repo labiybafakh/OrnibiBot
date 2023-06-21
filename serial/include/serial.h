@@ -21,6 +21,10 @@ typedef struct{
     __uint8_t* buffer_serial;
 } SerialPort;
 
+typedef struct{
+    int shared_memory;
+} SharedMemory;
+
 void decodePacket(SerialPort *data_in);
 
 #endif
