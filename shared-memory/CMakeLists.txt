@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 project(shared-memory)
 
-set(CMAKE_CXX_STANDARD 11)
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  MESSAGE("It using Clang")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 17)
 
 #Add the C++ header files
 include_directories(
@@ -13,10 +18,10 @@ include_directories(
 
 
 # Add the executable for the sender program
-add_executable(sender src/sender.cpp)
+add_executable(sender src/sender.c)
 
 # Add the executable for the receiver program
-add_executable(receiver src/receiver.cpp)
+add_executable(receiver src/receiver.c)
 
 # Link the required libraries (e.g., pthread, rt)
 target_link_libraries(sender pthread)

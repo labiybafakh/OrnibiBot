@@ -1,11 +1,13 @@
-#ifndef DATA_H
-#define DATA_H
+#ifndef SERIAL_H
+#define SERIAL_H
 
 #include <stdlib.h>
 #include <stdio.h>
 
 typedef struct{
-    uint16_t timestamp;    // 2 bytes
+    uint32_t timestamp;    // 2 bytes
+    uint16_t desiredLeft;
+    uint16_t desiredRight;
     float positionLeft;  // 2 bytes
     float positionRight; // 2 bytes
     float currentLeft;   // 2 bytes
@@ -19,6 +21,10 @@ typedef struct{
     __uint8_t* buffer_serial;
 } SerialPort;
 
-void decodePacket(SerialPort *data_in, PacketSerial *data_out);
+typedef struct{
+    int shared_memory;
+} SharedMemory;
+
+void decodePacket(SerialPort *data_in);
 
 #endif
