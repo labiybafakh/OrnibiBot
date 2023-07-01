@@ -1,9 +1,10 @@
-#include <iostream>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <unistd.h>
 #include "data.hpp"
 #include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 pthread_t debugThread;
@@ -24,7 +25,7 @@ typedef struct{
 PacketSerial* _data;
 
 void* debugThreads(void* arg){
-    while(true){
+    while(1){
         printf("Time(ms): %u\nDesired Position(signal): [%d, %d]\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\nVoltage(V):{%.2f, %.2f}\n",
         _data->timestamp, _data->desiredLeft, _data->desiredRight, _data->positionLeft, _data->currentRight,
         _data->currentLeft, _data->currentRight, _data->voltageLeft, _data->voltageRight);

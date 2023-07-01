@@ -7,12 +7,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 
 enable_language(C)
 enable_language(CXX)
-
-find_package(Boost REQUIRED COMPONENTS)
 
 #Add the C++ header files
 include_directories(

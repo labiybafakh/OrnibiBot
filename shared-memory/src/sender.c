@@ -2,6 +2,7 @@
 #include <sys/shm.h>
 #include <unistd.h>
 #include "data.hpp"
+#include <stdlib.h>
 
 typedef struct{
     uint32_t timestamp;    // 2 bytes
