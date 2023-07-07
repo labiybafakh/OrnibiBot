@@ -1,1 +1,10 @@
-int16 a
+builtin_interfaces/Time time
+float32 desired_left
+float32 desired_right
+float32 actual_left
+float32 actual_right
+float32 current_left
+float32 current_right
+float32 voltage_left
+float32 voltage_right
+geometry_msgs/Wrench wrench
