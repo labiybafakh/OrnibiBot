@@ -18,7 +18,7 @@ include_directories(include)
 
 ## Declare a cpp executable
 add_executable(${PROJECT_NAME}
-  src/acquisition.cpp
+  src/OrnibiBot.cpp
 )
 
 install(DIRECTORY

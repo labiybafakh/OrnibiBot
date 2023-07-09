@@ -6,14 +6,12 @@
 
 typedef struct{
     uint32_t timestamp;    // 2 bytes
-    uint16_t desiredLeft;
-    uint16_t desiredRight;
-    float positionLeft;  // 2 bytes
-    float positionRight; // 2 bytes
-    float currentLeft;   // 2 bytes
-    float currentRight;  // 2 bytes
-    float voltageLeft;   // 2 bytes
-    float voltageRight;  // 2 bytes
+    uint16_t desired_left;
+    uint16_t desired_right;
+    float actual_left;  // 2 bytes
+    float actual_right; // 2 bytes
+    int16_t power_left;   // 2 bytes
+    int16_t power_right;  // 2 bytes
 } PacketSerial;
 
 typedef struct{
