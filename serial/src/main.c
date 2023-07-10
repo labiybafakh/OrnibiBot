@@ -14,7 +14,7 @@
 #include <signal.h>
 
 
-#define buffer_size 20
+#define buffer_size 16
 
 SerialPort *_comm;
 SharedMemory *_shared;
@@ -77,10 +77,8 @@ void decodePacket(SerialPort *data_in){
     _data->desiredRight  = data_in->buffer_serial[6] | (data_in->buffer_serial[7] << 8);
     _data->positionLeft  = (data_in->buffer_serial[8] | (data_in->buffer_serial[9] << 8)) * 0.01f;
     _data->positionRight = (data_in->buffer_serial[10] | (data_in->buffer_serial[11] << 8)) * 0.01f;
-    _data->currentLeft   = (data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8)) * 0.01f;
-    _data->currentRight  = (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8)) * 0.01f;
-    _data->voltageLeft   = (data_in->buffer_serial[16] | (data_in->buffer_serial[17] << 8)) * 0.01f;
-    _data->voltageRight  = (data_in->buffer_serial[18] | (data_in->buffer_serial[19] << 8)) * 0.01f;
+    _data->powerleft   = (data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8)) * 0.01f;
+    _data->powerright  = (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8)) * 0.01f;
 
     pthread_mutex_unlock(&lock);
 
@@ -90,15 +88,15 @@ void* sharedThread(void *arg){
     uint32_t last_timestamp;
     while (!stop)
     {
-        _shared_data->timestamp     = _data->timestamp;
-        _shared_data->desiredLeft   = _data->desiredLeft;
-        _shared_data->desiredRight  = _data->desiredRight;
-        _shared_data->positionLeft  = _data->positionLeft;
-        _shared_data->positionRight = _data->positionRight;
-        _shared_data->currentLeft   = _data->currentLeft;
-        _shared_data->currentRight  = _data->currentRight;
-        _shared_data->voltageLeft   = _data->voltageLeft;
-        _shared_data->voltageRight  = _data->voltageRight;
+        // _shared_data->timestamp     = _data->timestamp;
+        // _shared_data->desiredLeft   = _data->desiredLeft;
+        // _shared_data->desiredRight  = _data->desiredRight;
+        // _shared_data->positionLeft  = _data->positionLeft;
+        // _shared_data->positionRight = _data->positionRight;
+        // _shared_data->currentLeft   = _data->currentLeft;
+        // _shared_data->currentRight  = _data->currentRight;
+        // _shared_data->voltageLeft   = _data->voltageLeft;
+        // _shared_data->voltageRight  = _data->voltageRight;
         
         last_timestamp = _shared_data->timestamp;   
     }
@@ -108,9 +106,9 @@ void* sharedThread(void *arg){
 void* debugThread(void *arg){
     while(!stop){
         if(flag_debug){
-        printf("Time(ms): %u\nDesired Position(signal): [%d, %d]\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\nVoltage(V):{%.2f, %.2f}\n",
-               _data->timestamp, _data->desiredLeft, _data->desiredRight, _data->positionLeft, _data->currentRight,
-               _data->currentLeft, _data->currentRight, _data->voltageLeft, _data->voltageRight);
+        printf("Time(ms): %u\nDesired Position(signal): [%d, %d]\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\n",
+               _data->timestamp, _data->desiredLeft, _data->desiredRight, _data->positionLeft, _data->positionRight,
+               _data->powerleft, _data->powerright);
         }
         usleep(5000);
     }
@@ -163,10 +161,10 @@ int main(int argc, char** argv){
         fprintf(stderr, "Please define the serial port.\n");
         exit(EXIT_FAILURE);
     }
-    else if(argv[2]==NULL){
-        fprintf(stderr, "Please define the shared memory.\n");
-        exit(EXIT_FAILURE);
-    }
+    // else if(argv[2]==NULL){
+    //     fprintf(stderr, "Please define the shared memory.\n");
+    //     exit(EXIT_FAILURE);
+    // }
 
     signal(SIGINT, handle_sigint);
 
@@ -201,18 +199,17 @@ int main(int argc, char** argv){
     tcsetattr(_comm->serial_port, TCSANOW, &options);
 
     // sharedMemoryInit(node);
-    
 
     //Initialize the threads
     pthread_create(&_serialThread, NULL, serialThread, NULL);
     pthread_create(&_debugThread, NULL, debugThread, NULL);
-    pthread_create(&_sharedThread, NULL, sharedThread, NULL);
+    // pthread_create(&_sharedThread, NULL, sharedThread, NULL);
 
     // while(!stop);
 
     pthread_join(_serialThread, NULL);
     pthread_join(_debugThread, NULL);
-    pthread_join(_sharedThread, NULL);
+    // pthread_join(_sharedThread, NULL);
     
     //end the shared memory process
     // sharedMemoryDestroy(node);
