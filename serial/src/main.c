@@ -44,6 +44,7 @@ void handle_sigint(int sig){
 int sharedMemoryInit(char* node_name){
     //Initialize the shared memory segment
     _shared->shared_memory = shm_open(node_name, O_CREAT | O_RDWR, 0666);
+
     if(_shared->shared_memory == -1){
         fprintf(stderr, "Shared memory initialization is error\n");
         exit(EXIT_FAILURE);
@@ -73,12 +74,12 @@ void decodePacket(SerialPort *data_in){
     _data->timestamp     = _data->timestamp | (data_in->buffer_serial[2] << 16);
     _data->timestamp     = _data->timestamp | (data_in->buffer_serial[3] << 24);
                             // | (data_in->buffer_serial[2] << 16) | (data_in->buffer_serial[3] << 24) ;
-    _data->desiredLeft   = data_in->buffer_serial[4] | (data_in->buffer_serial[5] << 8);
-    _data->desiredRight  = data_in->buffer_serial[6] | (data_in->buffer_serial[7] << 8);
-    _data->positionLeft  = (data_in->buffer_serial[8] | (data_in->buffer_serial[9] << 8)) * 0.01f;
-    _data->positionRight = (data_in->buffer_serial[10] | (data_in->buffer_serial[11] << 8)) * 0.01f;
-    _data->powerleft   = (data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8)) * 0.01f;
-    _data->powerright  = (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8)) * 0.01f;
+    _data->desiredLeft   = ((int16_t)(data_in->buffer_serial[4] | (data_in->buffer_serial[5] << 8))) * 0.01f;
+    _data->desiredRight  = ((int16_t)(data_in->buffer_serial[6] | (data_in->buffer_serial[7] << 8))) * 0.01f;
+    _data->positionLeft  = ((int16_t)(data_in->buffer_serial[8] | (data_in->buffer_serial[9] << 8))) * 0.01f;
+    _data->positionRight = ((int16_t)(data_in->buffer_serial[10] | (data_in->buffer_serial[11] << 8))) * 0.01f;
+    _data->powerleft   = ((int16_t)(data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8))) * 0.01f;
+    _data->powerright  = ((int16_t)(data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8))) * 0.01f;
 
     pthread_mutex_unlock(&lock);
 
@@ -106,7 +107,7 @@ void* sharedThread(void *arg){
 void* debugThread(void *arg){
     while(!stop){
         if(flag_debug){
-        printf("Time(ms): %u\nDesired Position(signal): [%d, %d]\nPosition(rads): [%.2f, %.2f]\nCurrent(A): [%.2f, %.2f]\n",
+        printf("Time(ms): %u\nDesired Position(signal): [%.2f, %.2f]\nPosition(rads): [%.2f, %.2f]\nPower(W): [%.2f, %.2f]\n",
                _data->timestamp, _data->desiredLeft, _data->desiredRight, _data->positionLeft, _data->positionRight,
                _data->powerleft, _data->powerright);
         }

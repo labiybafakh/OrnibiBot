@@ -6,8 +6,8 @@
 
 typedef struct{
         uint32_t timestamp;    // 4 bytes
-        uint16_t desiredLeft;   // 2 bytes
-        uint16_t desiredRight;  // 2 bytes
+        float desiredLeft;   // 2 bytes
+        float desiredRight;  // 2 bytes
         float positionLeft;  // 2 bytes
         float positionRight; // 2 bytes
         float powerleft;   // 2 bytes
