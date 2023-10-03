@@ -7,10 +7,11 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-include_directories(include)
+find_package(ornibibot_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 # find_package(serial REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
+
 
 
 #add_library(${PROJECT_NAME} ${SRC_FILES})
@@ -30,7 +31,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs)
+ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs)
 
 
 
