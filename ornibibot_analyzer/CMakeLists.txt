@@ -1,24 +1,22 @@
 cmake_minimum_required(VERSION 3.8)
-project(ornibibot_acquisition)
+project(ornibibot_analyzer)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(ornibibot_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 
-
-
-#add_library(${PROJECT_NAME} ${SRC_FILES})
-include_directories(include)
+#include_directories(include)
 
 ## Declare a cpp executable
 add_executable(${PROJECT_NAME}
-  src/OrnibiBot.cpp
+  src/converter.cpp
 )
 
 install(DIRECTORY
@@ -31,8 +29,6 @@ install(TARGETS
 )
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs)
-
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
