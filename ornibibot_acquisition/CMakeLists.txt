@@ -30,7 +30,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs)
+ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs ${wxWidgets_LIBRARIES})
 
 
 
