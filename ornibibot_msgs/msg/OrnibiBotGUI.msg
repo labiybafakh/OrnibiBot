@@ -1,0 +1,3 @@
+builtin_interfaces/Time time
+uint8 flapping_mode
+float32 flapping_frequency

@@ -1,7 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import UInt8, Float32
+# from std_msgs.msg import UInt8, Float32
+from ornibibot_msgs.msg import OrnibiBotGUI
 import tkinter as tk
 from tkinter import Scale, Button, Radiobutton
 import matplotlib
@@ -21,21 +22,17 @@ class CommROS(Node):
 
     def __init__(self):
         super().__init__('CommROS')
-        self.publisher_frequency = self.create_publisher(Float32, 'flapping_frequency', 5)
-        self.publisher_mode = self.create_publisher(UInt8, 'flapping_mode', 5)
+        self.publisher_frequency = self.create_publisher(OrnibiBotGUI, 'flapping_frequency_mode', 5)
         timer_period = 0.05  # seconds
-        self.timer_frequency = self.create_timer(timer_period, self.timer_callback_frequency)
-        self.timer_mode = self.create_timer(timer_period, self.timer_callback_mode)
+        self.timer_publish = self.create_timer(timer_period, self.timer_publisher)
+        # self.timer_mode = self.create_timer(timer_period, self.timer_callback_mode)
 
-    def timer_callback_frequency(self):
-        msg = Float32()
-        msg.data = flapping_frequency
+    def timer_publisher(self):
+        msg = OrnibiBotGUI()
+        msg.time = self.get_clock().now().to_msg()
+        msg.flapping_frequency = flapping_frequency
+        msg.flapping_mode = flapping_mode
         self.publisher_frequency.publish(msg)
-
-    def timer_callback_mode(self):
-        msg = UInt8()
-        msg.data = flapping_mode
-        self.publisher_mode.publish(msg)    
 
 class GUI(tk.Tk):
     def __init__(self, master, node):

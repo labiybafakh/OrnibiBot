@@ -4,6 +4,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "ornibibot_msgs/msg/ornibi_bot_data.hpp"
+#include "ornibibot_msgs/msg/ornibi_bot_gui.hpp"
 #include "signal.h"
 #include "memory.h"
 #include "serial.h"
@@ -29,6 +30,8 @@ class OrnibiBot : public rclcpp::Node{
         std::mutex mutex;
         struct termios options;
         const uint8_t buffer_size=16;
+        float flapping_frequency;
+        uint8_t flapping_mode;
 
         SerialPort *p_com;
         PacketSerial *p_data;
@@ -46,13 +49,16 @@ class OrnibiBot : public rclcpp::Node{
         rclcpp::TimerBase::SharedPtr timer_force;
         rclcpp::TimerBase::SharedPtr timer_restream;
         rclcpp::TimerBase::SharedPtr timer_decode;
+        rclcpp::TimerBase::SharedPtr timer_gui_command;
 
         rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr wrench_sub;
         rclcpp::Publisher<ornibibot_msgs::msg::OrnibiBotData>::SharedPtr restream_pub;
+        rclcpp::Subscription<ornibibot_msgs::msg::OrnibiBotGUI>::SharedPtr gui_command_sub;
 
-        void ForceCallback(const geometry_msgs::msg::WrenchStamped msg) const;
+        void ForceCallback(const geometry_msgs::msg::WrenchStamped &msg) const;
         void RestreamData();
         void SerialCallback();
+        void GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg);
         void DecodePacket(SerialPort *data_in);
 
     public:

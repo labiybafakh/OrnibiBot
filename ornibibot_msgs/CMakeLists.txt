@@ -16,6 +16,7 @@ find_package(geometry_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/OrnibiBotData.msg"
+  "msg/OrnibiBotGUI.msg"
   DEPENDENCIES builtin_interfaces std_msgs geometry_msgs
  )
 

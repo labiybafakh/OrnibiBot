@@ -10,6 +10,7 @@ find_package(rclcpp REQUIRED)
 find_package(ornibibot_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
+find_package(std_msgs REQUIRED)
 
 
 

@@ -16,6 +16,10 @@ OrnibiBot::OrnibiBot() : Node("OrnibiBot"){
 
     restream_pub = this->create_publisher<ornibibot_msgs::msg::OrnibiBotData>(
         "ornibibot_data", 5);
+    
+    gui_command_sub = this->create_subscription<ornibibot_msgs::msg::OrnibiBotGUI>(
+        "flapping_frequency_mode", 5, std::bind(&OrnibiBot::GUICallback, this, _1)
+    );
 
     p_com->serial_port = open(_port, O_RDWR | O_NOCTTY);
 
@@ -54,7 +58,15 @@ OrnibiBot::~OrnibiBot(){
     RCLCPP_WARN(this->get_logger(), "OrnibiBot has been stopped");
 }
 
-void OrnibiBot::ForceCallback(const geometry_msgs::msg::WrenchStamped msg) const{
+void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
+    if(rclcpp::ok()){
+        flapping_frequency = msg.flapping_frequency;
+        flapping_mode = msg.flapping_mode;
+        RCLCPP_INFO(this->get_logger(), "%f %d", flapping_frequency, flapping_mode);
+    }
+}
+
+void OrnibiBot::ForceCallback(const geometry_msgs::msg::WrenchStamped &msg) const{
 
     if(rclcpp::ok()){
         p_force->x = msg.wrench.force.x;
