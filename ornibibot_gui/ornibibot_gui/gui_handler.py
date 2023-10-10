@@ -3,10 +3,18 @@ from rclpy.node import Node
 
 from std_msgs.msg import UInt8, Float32
 import tkinter as tk
-from tkinter import Scale
+from tkinter import Scale, Button, Radiobutton
+import matplotlib
 
+# matplotlib.use('TkAgg')
 
-flapping_frequency = 0
+# from matplotlib.figure import Figure
+# from matplotlib.backends.backend_tkagg import (
+#     FigureCanvasTkAgg,
+#     NavigationToolbar2Tk
+# )
+
+flapping_frequency = 0.0
 flapping_mode = 0
 
 class CommROS(Node):
@@ -16,50 +24,79 @@ class CommROS(Node):
         self.publisher_frequency = self.create_publisher(Float32, 'flapping_frequency', 5)
         self.publisher_mode = self.create_publisher(UInt8, 'flapping_mode', 5)
         timer_period = 0.05  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.timer_frequency = self.create_timer(timer_period, self.timer_callback_frequency)
+        self.timer_mode = self.create_timer(timer_period, self.timer_callback_mode)
 
-    def timer_callback(self):
+    def timer_callback_frequency(self):
         msg = Float32()
-        msg.data = flapping_mode
+        msg.data = flapping_frequency
         self.publisher_frequency.publish(msg)
-        
-class GUI():
+
+    def timer_callback_mode(self):
+        msg = UInt8()
+        msg.data = flapping_mode
+        self.publisher_mode.publish(msg)    
+
+class GUI(tk.Tk):
     def __init__(self, master, node):
+        super().__init__()
         self.master = master
         self.node = node
         self.master.title("Tkinter with 2 Trackbars in Class")
-        # self.master.after(50, self.ros_spin)
+        self.master.after(50, self.ros_spin)
         
-        # Create the first trackbar (slider)
-        self.slider1 = Scale(self.master, from_=0, to=100, orient=tk.HORIZONTAL, label="Slider 1")
-        self.slider1.pack(pady=20)
-        self.slider1.bind("<Motion>", self.on_slider_change)
+        self.interfacing()
 
-        # Create the second trackbar (slider)
-        self.slider2 = Scale(self.master, from_=0, to=100, orient=tk.HORIZONTAL, label="Slider 2")
-        self.slider2.pack(pady=20)
-        self.slider2.bind("<Motion>", self.on_slider_change)
+        # self.figure = Figure(figsize=(6,4), dpi=300)
+        # self.figure_canvas = FigureCanvasTkAgg(self.figure, self.master)
+        # self.toolbar_canvas = NavigationToolbar2Tk(self.figure_canvas, self.master)
+        # self.axes = self.figure.add_subplot()
+
+    def interfacing(self):
+        # Create the first trackbar (slider) for Frequency
+        self.slider_frequency = Scale(self.master, from_=0.0, to=10.0, length= 300 ,orient=tk.VERTICAL, label="Flappign Frequency")
+        self.slider_frequency.pack(pady=50)
+        self.slider_frequency.bind("<Motion>", self.on_slider_change)
+
+        self.button = Button(self.master, text="Zero Frequency", command=self.button_zero_frequency)
+        self.button.pack(anchor="center")
+
+        self.label_flapping_mode = tk.Label(self.master, text="flapping mode")
+        # Dictionary to create multiple buttons
+        self.values = {"Sine" : 1,
+                "Triangle" : 2,
+                "Square" : 3,
+                "Saw" : 4,
+                "Rev-Saw" : 5}
+        
+        self.clicked_variable = tk.IntVar()
+        
+        for (text, value) in self.values.items():
+            Radiobutton(self.master, text = text, variable = self.clicked_variable, 
+            value = value, command=self.flapping_mode_callback).pack(ipady = 5)
 
     def on_slider_change(self, event):
-        # This function is called whenever a slider value changes
-        # print(f"Slider 1 value: {self.slider1.get()}")
-        # print(f"Slider 2 value: {self.slider2.get()}")
         global flapping_frequency, flapping_mode
-        flapping_frequency = self.slider1.get()
-        flapping_mode = self.slider2.get()
+        flapping_frequency = float(self.slider_frequency.get())
 
     def close_window(self):
         root.destroy()
         root.quit()
         rclpy.shutdown()
 
+    def flapping_mode_callback(self):
+        global flapping_mode
+        flapping_mode = self.clicked_variable.get()
 
 
+    def button_zero_frequency(self):
+        global flapping_frequency
+        self.slider_frequency.set(0.0)
+        flapping_frequency = 0.0
+        
     def ros_spin(self):
-        # rclpy.spin_once(self.node, timeout_sec=0.05)
-        # self.master.after(50, self.ros_spin)
-        pass
-
+        rclpy.spin_once(self.node, timeout_sec=0.05)
+        self.master.after(50, self.ros_spin)
 
 if __name__ == '__main__':
     root = tk.Tk()
