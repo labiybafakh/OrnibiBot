@@ -18,7 +18,7 @@ OrnibiBot::OrnibiBot() : Node("OrnibiBot"){
         "ornibibot_data", 5);
     
     gui_command_sub = this->create_subscription<ornibibot_msgs::msg::OrnibiBotGUI>(
-        "flapping_frequency_mode", 5, std::bind(&OrnibiBot::GUICallback, this, _1)
+        "flapping_frequency_mode", 50, std::bind(&OrnibiBot::GUICallback, this, _1)
     );
 
     p_com->serial_port = open(_port, O_RDWR | O_NOCTTY);
@@ -62,7 +62,10 @@ void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
     if(rclcpp::ok()){
         flapping_frequency = msg.flapping_frequency;
         flapping_mode = msg.flapping_mode;
-        RCLCPP_INFO(this->get_logger(), "%f %d", flapping_frequency, flapping_mode);
+
+        data_sent = (uint8_t)flapping_frequency*10 + flapping_mode;
+
+        // RCLCPP_INFO(this->get_logger(), "%f %d", flapping_frequency, flapping_mode);
     }
 }
 
@@ -116,6 +119,8 @@ void OrnibiBot::SerialCallback(){
                 if(num_bytes == -1) RCLCPP_ERROR_ONCE(this->get_logger(), "Read Failed: %s\n", strerror(errno));
                 else{
                     OrnibiBot::DecodePacket(p_com);
+                    write(p_com->serial_port, &data_sent, 1);
+                    RCLCPP_INFO(this->get_logger(), "%d", data_sent);
                 }
             }
         }

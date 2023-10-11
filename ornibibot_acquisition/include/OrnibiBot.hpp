@@ -30,6 +30,8 @@ class OrnibiBot : public rclcpp::Node{
         std::mutex mutex;
         struct termios options;
         const uint8_t buffer_size=16;
+
+        uint8_t data_sent;
         float flapping_frequency;
         uint8_t flapping_mode;
 

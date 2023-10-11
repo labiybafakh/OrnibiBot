@@ -61,10 +61,10 @@ class GUI(tk.Tk):
         self.label_flapping_mode = tk.Label(self.master, text="flapping mode")
         # Dictionary to create multiple buttons
         self.values = {"Sine" : 1,
-                "Triangle" : 2,
+                "Triangle" : 5,
                 "Square" : 3,
-                "Saw" : 4,
-                "Rev-Saw" : 5}
+                "Saw" : 7,
+                "Rev-Saw" : 9}
         
         self.clicked_variable = tk.IntVar()
         
