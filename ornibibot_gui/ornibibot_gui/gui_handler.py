@@ -1,19 +1,18 @@
 import rclpy
 from rclpy.node import Node
+import random
 
 # from std_msgs.msg import UInt8, Float32
 from ornibibot_msgs.msg import OrnibiBotGUI
 import tkinter as tk
 from tkinter import Scale, Button, Radiobutton
 import matplotlib
+from itertools import count
 
-# matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# from matplotlib.figure import Figure
-# from matplotlib.backends.backend_tkagg import (
-#     FigureCanvasTkAgg,
-#     NavigationToolbar2Tk
-# )
 
 flapping_frequency = 0.0
 flapping_mode = 0
@@ -34,20 +33,24 @@ class CommROS(Node):
         msg.flapping_mode = flapping_mode
         self.publisher_frequency.publish(msg)
 
-class GUI(tk.Tk):
+class GUI():
     def __init__(self, master, node):
         super().__init__()
         self.master = master
         self.node = node
-        self.master.title("Tkinter with 2 Trackbars in Class")
+        self.master.title("OrnibiBot GUI")
         self.master.after(50, self.ros_spin)
         
         self.interfacing()
 
-        # self.figure = Figure(figsize=(6,4), dpi=300)
-        # self.figure_canvas = FigureCanvasTkAgg(self.figure, self.master)
-        # self.toolbar_canvas = NavigationToolbar2Tk(self.figure_canvas, self.master)
-        # self.axes = self.figure.add_subplot()
+        # values for first graph
+        self.x_vals = []
+        self.y_vals = []
+        # values for second graph
+        self.y_vals2 = []
+
+        self.index = count()
+        self.index2 = count()
 
     def interfacing(self):
         # Create the first trackbar (slider) for Frequency
@@ -72,6 +75,13 @@ class GUI(tk.Tk):
             Radiobutton(self.master, text = text, variable = self.clicked_variable, 
             value = value, command=self.flapping_mode_callback).pack(ipady = 5)
 
+        # self.canvas = FigureCanvasTkAgg(plt.gcf(), master= self.master)
+        # self.canvas.get_tk_widget().grid(column=0, row=1)
+
+        # plt.gcf().subplots(1,2)
+
+        # self.ani = FuncAnimation(plt.gcf(), self.animate_plot, interval= 1000, blit= False)
+
     def on_slider_change(self, event):
         global flapping_frequency, flapping_mode
         flapping_frequency = float(self.slider_frequency.get())
@@ -85,7 +95,6 @@ class GUI(tk.Tk):
         global flapping_mode
         flapping_mode = self.clicked_variable.get()
 
-
     def button_zero_frequency(self):
         global flapping_frequency
         self.slider_frequency.set(0.0)
@@ -94,6 +103,19 @@ class GUI(tk.Tk):
     def ros_spin(self):
         rclpy.spin_once(self.node, timeout_sec=0.05)
         self.master.after(50, self.ros_spin)
+
+    def animate_plot(self):
+        self.x_vals.append(next(self.index))
+        self.y_vals.append(random.randint(0, 5))
+        self.y_vals2.append(random.randint(0, 5))
+        # Get all axes of figure
+        ax1, ax2 = plt.gcf().get_axes()
+        # Clear current data
+        ax1.cla()
+        ax2.cla()
+        # Plot new data
+        ax1.plot(self.x_vals, self.y_vals)
+        ax2.plot(self.x_vals, self.y_vals2)
 
 if __name__ == '__main__':
     root = tk.Tk()
