@@ -1,0 +1,6 @@
+[submodule "ornibibot_gui/third_party/imgui"]
+	path = ornibibot_gui/third_party/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "ornibibot_gui/third_party/implot"]
+	path = ornibibot_gui/third_party/implot
+	url = https://github.com/epezent/implot
