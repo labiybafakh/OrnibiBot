@@ -26,7 +26,9 @@ include_directories(
   include
   ${IMGUI_DIR}
   ${IMPLOT_DIR}
+  ${OPENGL_INCLUDE_DIR}
 )
+
 
 add_executable(${PROJECT_NAME} 
   src/ornibibot_gui.cpp
@@ -49,8 +51,8 @@ install(TARGETS ornibibot_gui
   DESTINATION lib/${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}
-  -lopengl32
-  -lglfw
+  ${OPENGL_gl_LIBRARY}
+  glfw
 )
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp ornibibot_msgs)

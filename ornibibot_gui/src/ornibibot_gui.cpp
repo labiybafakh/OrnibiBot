@@ -4,6 +4,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ornibibot_msgs/msg/ornibi_bot_data.hpp"
 #include "ornibibot_msgs/msg/ornibi_bot_gui.hpp"
+#include "geometry_msgs/msg/wrench_stamped.hpp"
 
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
@@ -12,12 +13,54 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 
+using namespace std::chrono_literals;
+using std::placeholders::_1;
+
+
 void error_callback(int error, const char* description)
 {
     std::cerr << "Error: " << description << std::endl;
 }
 
+std::atomic<float> force_x;
 
+struct axes_data{
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> z;
+};
+
+struct data_ornibibot{
+    std::vector<uint32_t> robot_time;
+    std::vector<double> desired_left;
+    std::vector<double> desired_right;
+    std::vector<double> actual_left;
+    std::vector<double> actual_right;
+    std::vector<double> velocity_left;
+    std::vector<double> velocity_right;
+    std::vector<double> power_left;
+    std::vector<double> power_right;
+    axes_data force;
+    axes_data moment;
+};
+
+auto ornibibot_data = std::make_shared<data_ornibibot>();
+
+
+
+void callback_sensor(const geometry_msgs::msg::WrenchStamped::SharedPtr sensor){
+
+
+    
+    ornibibot_data->force.x.emplace_back(sensor->wrench.force.x);
+    ornibibot_data->force.y.emplace_back(sensor->wrench.force.y);
+    ornibibot_data->force.z.emplace_back(sensor->wrench.force.z);
+
+    ornibibot_data->moment.x.emplace_back(sensor->wrench.torque.x);
+    ornibibot_data->moment.y.emplace_back(sensor->wrench.torque.y);
+    ornibibot_data->moment.z.emplace_back(sensor->wrench.torque.z);
+
+}
 
 
 int main(int argc, char** argv)
@@ -37,6 +80,8 @@ int main(int argc, char** argv)
 
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("converter");
+    auto force_sub = node->create_subscription<geometry_msgs::msg::WrenchStamped>("leptrino", 5, callback_sensor);
+
     
     glfwMakeContextCurrent(gui_window);
     glfwSwapInterval(1); // Enable vsync
@@ -60,6 +105,7 @@ int main(int argc, char** argv)
     // Main loop
     while (!glfwWindowShouldClose(gui_window) && rclcpp::ok())
     {
+        rclcpp::spin_some(node);
         // Poll and handle events (inputs, window resize, etc.)
         glfwPollEvents();
 
