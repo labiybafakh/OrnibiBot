@@ -14,6 +14,9 @@ find_package(rclcpp REQUIRED)
 find_package(ornibibot_msgs REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(optitrack_msgs REQUIRED)
+find_package(GLEW REQUIRED)
+
   
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -21,12 +24,13 @@ find_package(glfw3 REQUIRED)
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui)
 set(IMPLOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot)
-
+  
 include_directories(
   include
   ${IMGUI_DIR}
   ${IMPLOT_DIR}
   ${OPENGL_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIRS}
 )
 
 
@@ -45,6 +49,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(ornibibot_gui PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+  
 target_compile_features(ornibibot_gui PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 install(TARGETS ornibibot_gui
@@ -53,9 +58,10 @@ install(TARGETS ornibibot_gui
 target_link_libraries(${PROJECT_NAME}
   ${OPENGL_gl_LIBRARY}
   glfw
+  ${GLEW_LIBRARIES}
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp ornibibot_msgs)
+ament_target_dependencies(${PROJECT_NAME} rclcpp ornibibot_msgs optitrack_msgs)
 
 
 if(BUILD_TESTING)

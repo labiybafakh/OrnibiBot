@@ -5,13 +5,28 @@
 #include "ornibibot_msgs/msg/ornibi_bot_data.hpp"
 #include "ornibibot_msgs/msg/ornibi_bot_gui.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
+#include "optitrack_msgs/msg/optitrack_data.hpp"
+
+#include "GL/glew.h"
+#include <GLFW/glfw3.h>
+
 
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "implot.h"
-#include <GLFW/glfw3.h>
 #include <cmath>
+#include <memory>
+
+struct marker{
+    float x;
+    float y;
+    float z;
+};
+
+const size_t n_marker = 8;
+
+std::unique_ptr<marker[]> wing_marker(new marker[n_marker]);
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -24,42 +39,70 @@ void error_callback(int error, const char* description)
 
 std::atomic<float> force_x;
 
-struct axes_data{
-    std::vector<double> x;
-    std::vector<double> y;
-    std::vector<double> z;
-};
 
-struct data_ornibibot{
-    std::vector<uint32_t> robot_time;
-    std::vector<double> desired_left;
-    std::vector<double> desired_right;
-    std::vector<double> actual_left;
-    std::vector<double> actual_right;
-    std::vector<double> velocity_left;
-    std::vector<double> velocity_right;
-    std::vector<double> power_left;
-    std::vector<double> power_right;
-    axes_data force;
-    axes_data moment;
-};
+void visualize_frame(){
+    return 0;
+}
 
-auto ornibibot_data = std::make_shared<data_ornibibot>();
+void visualize_marker(){
+    glBegin(GL_POLYGON);
+    glClear( GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 
 
+    glBegin(GL_TRIANGLES);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glVertex3f(0.0f, 0.5f, 0.5f);
+    glEnd();
 
-void callback_sensor(const geometry_msgs::msg::WrenchStamped::SharedPtr sensor){
+    // for (int i = 0; i < (uint8_t) n_marker; i++){
+    //     glColor3f(0.55f, 0.55f, 0.55f);
+    //     glVertex3f(wing_marker[i].x, wing_marker[i].y, wing_marker[i].z);
+
+    //     std::cout << i << "==>" << wing_marker[i].x << ", " << wing_marker[i].y << ", " << wing_marker[i].z << std::endl;
+    // }
+    glEnd();
+
+}
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glVertex3f(0.0f, 0.5f, 0.5f);
+    glEnd();
 
 
+void callback_optitrack(const optitrack_msgs::msg::OptitrackData::SharedPtr optitrack_data){
+    wing_marker[0].x = optitrack_data->marker1.x;
+    wing_marker[0].y = optitrack_data->marker1.y;
+    wing_marker[0].z = optitrack_data->marker1.z;
     
-    ornibibot_data->force.x.emplace_back(sensor->wrench.force.x);
-    ornibibot_data->force.y.emplace_back(sensor->wrench.force.y);
-    ornibibot_data->force.z.emplace_back(sensor->wrench.force.z);
-
-    ornibibot_data->moment.x.emplace_back(sensor->wrench.torque.x);
-    ornibibot_data->moment.y.emplace_back(sensor->wrench.torque.y);
-    ornibibot_data->moment.z.emplace_back(sensor->wrench.torque.z);
-
+    wing_marker[1].x = optitrack_data->marker2.x;
+    wing_marker[1].y = optitrack_data->marker2.y;
+    wing_marker[1].z = optitrack_data->marker2.z;
+    
+    wing_marker[2].x = optitrack_data->marker3.x;
+    wing_marker[2].y = optitrack_data->marker3.y;
+    wing_marker[3].z = optitrack_data->marker3.z;
+    
+    wing_marker[3].x = optitrack_data->marker4.x;
+    wing_marker[3].y = optitrack_data->marker4.y;
+    wing_marker[3].z = optitrack_data->marker4.z;
+    
+    wing_marker[4].x = optitrack_data->marker5.x;
+    wing_marker[4].y = optitrack_data->marker5.y;
+    wing_marker[4].z = optitrack_data->marker5.z;
+    
+    wing_marker[5].x = optitrack_data->marker6.x;
+    wing_marker[5].y = optitrack_data->marker6.y;
+    wing_marker[5].z = optitrack_data->marker6.z;
+    
+    wing_marker[6].x = optitrack_data->marker7.x;
+    wing_marker[6].y = optitrack_data->marker7.y;
+    wing_marker[6].z = optitrack_data->marker7.z;
+    
+    wing_marker[7].x = optitrack_data->marker8.x;
+    wing_marker[7].y = optitrack_data->marker8.y;
+    wing_marker[7].z = optitrack_data->marker8.z;
+        
 }
 
 
@@ -79,12 +122,18 @@ int main(int argc, char** argv)
     if (gui_window == NULL) std::cerr << "window is null";
 
     rclcpp::init(argc, argv);
-    auto node = rclcpp::Node::make_shared("converter");
-    auto force_sub = node->create_subscription<geometry_msgs::msg::WrenchStamped>("leptrino", 5, callback_sensor);
+    auto node = rclcpp::Node::make_shared("gui");
+    // auto gui_pub = node->create_publisher<
+    auto force_sub = node->create_subscription<optitrack_msgs::msg::OptitrackData>("optitrack_data", 5, callback_optitrack);
 
     
     glfwMakeContextCurrent(gui_window);
     glfwSwapInterval(1); // Enable vsync
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "Failed to initialize GLEW" << std::endl;
+        return -1;
+    }
 
     // Setup ImGui binding
     IMGUI_CHECKVERSION();
@@ -105,8 +154,9 @@ int main(int argc, char** argv)
     // Main loop
     while (!glfwWindowShouldClose(gui_window) && rclcpp::ok())
     {
+        
         rclcpp::spin_some(node);
-        // Poll and handle events (inputs, window resize, etc.)
+        // Poll and handle events (inputs, window resize, etc.)]
         glfwPollEvents();
 
         // Start the ImGui frame
@@ -114,15 +164,21 @@ int main(int argc, char** argv)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+
         // Show a simple window that we create ourselves.
         {
-            static float f = 0.0f;
+            static int flapping_frequency = 0.0f;
+            static int amplitude = 0;
+            static int offset = 0;
             static int counter = 0;
 
             ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text."); // Display some text (you can use a format string too)
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderInt("Flapping Frequency", &flapping_frequency, 0, 5); // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderInt("Amplitude", &amplitude, 0, 45);
+            ImGui::SliderInt("Offset1", &offset, -45, 45);
+
 
             ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bool storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
@@ -132,14 +188,11 @@ int main(int argc, char** argv)
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
 
-            // Create a simple plot using ImPlot
-            static float values[100];
-
-            if (ImPlot::BeginPlot("Simple Plot")) {
-                ImPlot::PlotLine("My Line Plot", values, 100);
-                ImPlot::EndPlot();
-            }
-
+            ImGui::End();
+        }
+        {
+            ImGui::Begin("TESTING");
+            visualize_marker();
             ImGui::End();
         }
 

@@ -27,7 +27,7 @@ struct data_ornibibot{
     axes_data force;
     axes_data moment;
 };
-
+    
 auto ornibibot_data = std::make_shared<data_ornibibot>();
 std::size_t previous_size;
 bool bag_played = 1;
