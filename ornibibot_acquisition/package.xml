@@ -11,6 +11,7 @@
 
   <depend>geometry_msgs</depend>
   <depend>ornibibot_msgs</depend>
+  <depend>optitrack_msgs</depend>
   <depend>std_msgs</depend>
 
 

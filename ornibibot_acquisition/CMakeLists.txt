@@ -11,6 +11,7 @@ find_package(ornibibot_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(optitrack_msgs REQUIRED)
 
 
 
@@ -31,7 +32,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs ${wxWidgets_LIBRARIES})
+ament_target_dependencies(${PROJECT_NAME} rclcpp geometry_msgs ornibibot_msgs optitrack_msgs)
 
 
 

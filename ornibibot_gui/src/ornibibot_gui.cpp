@@ -24,6 +24,8 @@ struct marker{
     float z;
 };
 
+char data[17] = "  Record Data  ";
+
 const size_t n_marker = 8;
 
 std::unique_ptr<marker[]> wing_marker(new marker[n_marker]);
@@ -41,11 +43,10 @@ std::atomic<float> force_x;
 
 
 void visualize_frame(){
-    return 0;
+    
 }
 
 void visualize_marker(){
-    glBegin(GL_POLYGON);
     glClear( GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 
 
@@ -61,14 +62,8 @@ void visualize_marker(){
 
     //     std::cout << i << "==>" << wing_marker[i].x << ", " << wing_marker[i].y << ", " << wing_marker[i].z << std::endl;
     // }
-    glEnd();
 
 }
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glVertex3f(0.0f, 0.5f, 0.5f);
-    glEnd();
-
 
 void callback_optitrack(const optitrack_msgs::msg::OptitrackData::SharedPtr optitrack_data){
     wing_marker[0].x = optitrack_data->marker1.x;
@@ -120,13 +115,13 @@ int main(int argc, char** argv)
     GLFWwindow* gui_window = glfwCreateWindow(1280, 720, "GUI", NULL, NULL);
 
     if (gui_window == NULL) std::cerr << "window is null";
+    
 
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("gui");
-    // auto gui_pub = node->create_publisher<
-    auto force_sub = node->create_subscription<optitrack_msgs::msg::OptitrackData>("optitrack_data", 5, callback_optitrack);
+    auto gui_pub = node->create_publisher<ornibibot_msgs::msg::OrnibiBotGUI>("ornibibot_gui", 5);
+    auto gui_data = std::make_shared<ornibibot_msgs::msg::OrnibiBotGUI>(); 
 
-    
     glfwMakeContextCurrent(gui_window);
     glfwSwapInterval(1); // Enable vsync
     glewExperimental = GL_TRUE;
@@ -150,6 +145,8 @@ int main(int argc, char** argv)
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool flag_record = false;
+
 
     // Main loop
     while (!glfwWindowShouldClose(gui_window) && rclcpp::ok())
@@ -164,37 +161,64 @@ int main(int argc, char** argv)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        static int flapping_frequency = 0.0f;
+        static int amplitude = 0;
+        static int offset = 0;
 
         // Show a simple window that we create ourselves.
         {
-            static int flapping_frequency = 0.0f;
-            static int amplitude = 0;
-            static int offset = 0;
-            static int counter = 0;
 
-            ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text."); // Display some text (you can use a format string too)
+            ImGui::Begin("Control Panel"); // Create a window called "Hello, world!" and append into it.
+
+            // ImGui::Text("This is some useful text."); // Display some text (you can use a format string too)
             ImGui::SliderInt("Flapping Frequency", &flapping_frequency, 0, 5); // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::SliderInt("Amplitude", &amplitude, 0, 45);
             ImGui::SliderInt("Offset1", &offset, -45, 45);
+            
+            if(ImGui::Button(data)) {
+                if (!strcmp(data, "  Record Data  ")) {
+                    strcpy(data, " Finish Record ");
+                    flag_record = 1;
+                }
+                else {
+                    strcpy(data, "  Record Data  ");
+                    flag_record = 0;
+                }
+            }
+
+            // gui_data->time = node::TimerBase::now();
+            gui_data->flapping_amplitude = amplitude;
+            gui_data->flapping_frequency = flapping_frequency;
+            gui_data->flapping_offset = offset;
+            gui_data->record_data = flag_record;
+
+            gui_pub->publish(*gui_data);
 
 
-            ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bool storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+            // ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bool storing our window open/close state
+            // ImGui::Checkbox("Another Window", &show_another_window);
 
-            if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+            // if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
+            //     counter++;
+            // ImGui::SameLine();
+            // ImGui::Text("counter = %d", counter);
 
             ImGui::End();
         }
+
+        ImGui::Begin("Visualization");
         {
-            ImGui::Begin("TESTING");
-            visualize_marker();
-            ImGui::End();
+        // Using a Child allow to fill all the space of the window.
+        // It also alows customization
+        ImGui::BeginChild("Marker Window");
+        // Get the size of the child (i.e. the whole draw size of the windows).
+        ImVec2 wsize = ImGui::GetWindowSize();
+        // Because I use the texture from OpenGL, I need to invert the V from the UV.
+        // ImGui::Image(reinterpret_cast<ImTextureID>(GL_TEXTURE_HANDLE), wsize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::EndChild();
         }
+        ImGui::End();
 
         // Rendering
         ImGui::Render();
