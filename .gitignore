@@ -1,4 +1,4 @@
-rosbag2_
+rosbag2_*
 .DS_Store
 build
 .vscode

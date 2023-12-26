@@ -1,5 +1,4 @@
-#include <iostream>
-#include <cstdio>
+#include "ornibibot_gui.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "ornibibot_msgs/msg/ornibi_bot_data.hpp"
@@ -18,11 +17,6 @@
 #include <cmath>
 #include <memory>
 
-struct marker{
-    float x;
-    float y;
-    float z;
-};
 
 char data[17] = "  Record Data  ";
 
@@ -40,6 +34,7 @@ void error_callback(int error, const char* description)
 }
 
 std::atomic<float> force_x;
+
 
 
 void visualize_frame(){
@@ -85,18 +80,6 @@ void callback_optitrack(const optitrack_msgs::msg::OptitrackData::SharedPtr opti
     wing_marker[4].x = optitrack_data->marker5.x;
     wing_marker[4].y = optitrack_data->marker5.y;
     wing_marker[4].z = optitrack_data->marker5.z;
-    
-    wing_marker[5].x = optitrack_data->marker6.x;
-    wing_marker[5].y = optitrack_data->marker6.y;
-    wing_marker[5].z = optitrack_data->marker6.z;
-    
-    wing_marker[6].x = optitrack_data->marker7.x;
-    wing_marker[6].y = optitrack_data->marker7.y;
-    wing_marker[6].z = optitrack_data->marker7.z;
-    
-    wing_marker[7].x = optitrack_data->marker8.x;
-    wing_marker[7].y = optitrack_data->marker8.y;
-    wing_marker[7].z = optitrack_data->marker8.z;
         
 }
 
@@ -147,6 +130,12 @@ int main(int argc, char** argv)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool flag_record = false;
 
+    flapping_param flapping_param_;
+
+    flapping_param_.offset =  0;
+    flapping_param_.amplitude = 0;
+    flapping_param_.patterns = 0;
+    flapping_param_.frequency = 0;
 
     // Main loop
     while (!glfwWindowShouldClose(gui_window) && rclcpp::ok())
@@ -161,21 +150,57 @@ int main(int argc, char** argv)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        static int flapping_frequency = 0.0f;
-        static int amplitude = 0;
-        static int offset = 0;
 
         // Show a simple window that we create ourselves.
         {
 
 
             ImGui::Begin("Control Panel"); // Create a window called "Hello, world!" and append into it.
-
-            // ImGui::Text("This is some useful text."); // Display some text (you can use a format string too)
-            ImGui::SliderInt("Flapping Frequency", &flapping_frequency, 0, 5); // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::SliderInt("Amplitude", &amplitude, 0, 45);
-            ImGui::SliderInt("Offset1", &offset, -45, 45);
+            ImGui::Text("Flapping parameters:");
             
+            ImGui::Text("Pattern:");
+            ImGui::SameLine();
+            if(ImGui::Button("Sine")) flapping_param_.patterns = sine;
+            ImGui::SameLine();
+            if(ImGui::Button("Square")) flapping_param_.patterns = square;
+            ImGui::SameLine();
+            if(ImGui::Button("Triangle")) flapping_param_.patterns = triangle;
+            ImGui::SameLine();
+            if(ImGui::Button("Saw")) flapping_param_.patterns = saw;
+            ImGui::SameLine();
+            if(ImGui::Button("Rev-Saw")) flapping_param_.patterns = rev_saw;
+        
+            
+            if(ImGui::Button(" - "))    if(flapping_param_.frequency > 0) flapping_param_.frequency-= 0.5;
+            ImGui::SameLine();
+            ImGui::Text("Frequency: %.2f", flapping_param_.frequency );
+            ImGui::SameLine();
+            if(ImGui::Button(" + "))    flapping_param_.frequency  += 0.5;
+            ImGui::SameLine();
+            if(ImGui::Button("Zero Frequency"))   flapping_param_.frequency  = 0;       
+    
+        
+            if(ImGui::Button("  -  ")) 
+                if(flapping_param_.offset > -25) flapping_param_.offset -= 5;
+            ImGui::SameLine();
+            ImGui::Text("Offset: %d", flapping_param_.offset);
+            ImGui::SameLine();
+            if(ImGui::Button("  +  "))
+                if(flapping_param_.offset < 25) flapping_param_.offset += 5;
+            ImGui::SameLine();
+            if(ImGui::Button("Zero Offset")) flapping_param_.offset = 0;            
+        
+            if(ImGui::Button("-"))
+                if(flapping_param_.amplitude > 5)flapping_param_.amplitude -= 5;
+            ImGui::SameLine();
+            ImGui::Text("Amplitude: %d", flapping_param_.amplitude);
+            ImGui::SameLine();
+            if(ImGui::Button("+"))
+                if(flapping_param_.amplitude < 50)flapping_param_.amplitude += 5;
+            ImGui::SameLine();
+            if(ImGui::Button("Zero Amplitude")) flapping_param_.amplitude = 0;    
+         
+
             if(ImGui::Button(data)) {
                 if (!strcmp(data, "  Record Data  ")) {
                     strcpy(data, " Finish Record ");
@@ -188,21 +213,13 @@ int main(int argc, char** argv)
             }
 
             // gui_data->time = node::TimerBase::now();
-            gui_data->flapping_amplitude = amplitude;
-            gui_data->flapping_frequency = flapping_frequency;
-            gui_data->flapping_offset = offset;
+            gui_data->flapping_amplitude = flapping_param_.amplitude;
+            gui_data->flapping_frequency = flapping_param_.frequency;
+            gui_data->flapping_offset = flapping_param_.offset;
+            gui_data->flapping_mode = flapping_param_.patterns;
             gui_data->record_data = flag_record;
 
             gui_pub->publish(*gui_data);
-
-
-            // ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bool storing our window open/close state
-            // ImGui::Checkbox("Another Window", &show_another_window);
-
-            // if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-            //     counter++;
-            // ImGui::SameLine();
-            // ImGui::Text("counter = %d", counter);
 
             ImGui::End();
         }

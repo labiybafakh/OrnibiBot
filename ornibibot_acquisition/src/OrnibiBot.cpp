@@ -77,20 +77,29 @@ std::string OrnibiBot::getTimeStr() {
 
 void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
     if(rclcpp::ok()){
+        // RCLCPP_INFO(this->get_logger(), "Flag record: %d", msg.record_data);
+
         flapping_frequency = msg.flapping_frequency;
         flapping_mode = msg.flapping_mode;
+        flapping_offset = msg.flapping_offset;
+        flapping_amplitude = msg.flapping_amplitude;
         flag_record = msg.record_data;
         
+        buffer_parameter[0] = (uint8_t)0xFF;
+        buffer_parameter[1] = (uint8_t)(flapping_frequency*10);
+        buffer_parameter[2] = (uint8_t)flapping_mode;
+        buffer_parameter[3] = (uint8_t)(flapping_offset + 100);
+        buffer_parameter[4] = (uint8_t)flapping_amplitude;
+        buffer_parameter[5] = (uint8_t)0xEE;
 
-        data_sent = (uint8_t)flapping_frequency*10 + flapping_mode;
-
-        // RCLCPP_INFO(this->get_logger(), "%f %d", flapping_frequency, flapping_mode);
+        // for(int i = 0; i < sizeof(buffer_parameter); i++) std::cout << i << "," << buffer_parameter[i] << std::endl;
+        // RCLCPP_INFO(this->get_logger(), "%u %u %u %u", flapping_frequency, flapping_mode, flapping_offset, flapping_amplitude);
     }
 }
 
 void OrnibiBot::ForceCallback(const geometry_msgs::msg::WrenchStamped &msg) const{
 
-    if(rclcpp::ok()){
+    // if(rclcpp::ok()){
         force_->x = msg.wrench.force.x;
         force_->y = msg.wrench.force.y;
         force_->z = msg.wrench.force.z;
@@ -99,13 +108,13 @@ void OrnibiBot::ForceCallback(const geometry_msgs::msg::WrenchStamped &msg) cons
         moment_->z = msg.wrench.torque.z;
 
         //RCLCPP_INFO(this->get_logger(), "%f", force_->x);
-    }    
+    // }    
     // RCLCPP_INFO(this->get_logger(),  )
 }
 
 void OrnibiBot::DecodePacket(SerialPort *data_in){
 
-    if(rclcpp::ok()){
+    // if(rclcpp::ok()){
         data_serial_->timestamp     = data_in->buffer_serial[0] | (data_in->buffer_serial[1] << 8);
         data_serial_->timestamp     = data_serial_->timestamp | (data_in->buffer_serial[2] << 16);
         data_serial_->timestamp     = data_serial_->timestamp | (data_in->buffer_serial[3] << 24);
@@ -117,14 +126,15 @@ void OrnibiBot::DecodePacket(SerialPort *data_in){
         data_serial_->power_left   = ((int16_t)  (data_in->buffer_serial[12] | (data_in->buffer_serial[13] << 8))) * 0.01f;
         data_serial_->power_right  = ((int16_t)  (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8))) * 0.01f;
     // RCLCPP_INFO(this->get_logger(), "timestamp: %f", data_->actual_left);
-    }
+    // }
+        RCLCPP_INFO(this->get_logger(), "Timestamp: %d, actual left: %.2f, desired left: %.2f", data_serial_->timestamp, data_serial_->actual_left, data_serial_->actual_left);
 
 }
 
 void OrnibiBot::SerialCallback(){
+
     
     if(rclcpp::ok()){
-        std::cout << "Serial Run" << std::endl;
         uint8_t available_bytes=0;
 
         if(ioctl(com_->serial_port, FIONREAD, &available_bytes) < 0){
@@ -138,8 +148,12 @@ void OrnibiBot::SerialCallback(){
                 if(num_bytes == -1) RCLCPP_ERROR_ONCE(this->get_logger(), "Read Failed: %s\n", strerror(errno));
                 else{
                     OrnibiBot::DecodePacket(com_);
-                    write(com_->serial_port, &data_sent, 1);
-                    RCLCPP_INFO(this->get_logger(), "%d", data_sent);
+                    // write(com_->serial_port, &buffer_parameter, sizeof(buffer_parameter));
+                    write(com_->serial_port, &buffer_parameter, sizeof(buffer_parameter));
+
+                    memset(buffer_parameter, '\0', sizeof(buffer_parameter));
+                    // write(com_->serial_port, &data_sent, 1);
+                    // RCLCPP_INFO(this->get_logger(), "Serial OK");
                 }
             }
         }
@@ -147,37 +161,42 @@ void OrnibiBot::SerialCallback(){
 }
 
 void OrnibiBot::RestreamData(){
-    bool prev_record = 0;
     if(rclcpp::ok()){
-        
         if(flag_record == 1){
             if(prev_record == 0){
-                
+                RCLCPP_INFO(this->get_logger(), "Start record data.");
                 std::string file_name = getTimeStr() + ".csv";
                 const char* file_name_ = file_name.c_str();
                 file.open(file_name_);
 
                 // Headers
-                file << "timestamp,desired_left,actual_left,desired_right,actual_right,power_left,power_right,force_x,force_y,force_z,moment_x,moment_y,moment_z,marker1_x,marker1_y,marker1_z,marker2_x,marker2_y,marker2_z,marker3_x,marker3_y,marker3_z,marker4_x,marker4_y,marker4_z,marker5_x,marker5_y,marker5_z,marker6_x,marker6_y,marker6_z,marker7_x,marker7_y,marker7_z,marker8_x,marker8_y,marker8_z,\n";
-                
+                file << "timestamp,desired_left,actual_left,desired_right,actual_right,power_left,power_right,force_x,force_z,moment_y,marker1_x,marker1_y,marker1_z,marker2_x,marker2_y,marker2_z,marker3_x,marker3_y,marker3_z,marker4_x,marker4_y,marker4_z,marker5_x,marker5_y,marker5_z,marker6_x,marker6_y,marker6_z,marker7_x,marker7_y,marker7_z,marker8_x,marker8_y,marker8_z\n";
+            
                 prev_record = 1;
             }
             else{
+
                 file << data_serial_->timestamp << ",";
                 file << data_serial_->desired_left << "," << data_serial_->actual_left << ",";
                 file << data_serial_->desired_right << "," << data_serial_->actual_right << ",";
                 file << data_serial_->power_left << "," << data_serial_->power_right << ",";
-                file << force_->x << "," << force_->y << "," << force_->z << ",";
-                file << moment_->x << "," << moment_->y << "," << moment_->z << ",";
-                // for(int = 0; i < 7; i++){
-                //     file <<
-                // }
+                file << force_->x << "," << force_->z << "," << moment_->y << ",";
+                file << wing_marker_x[0] << "," << wing_marker_y[0] << "," <<wing_marker_z[0] << ",";
+                file << wing_marker_x[1] << "," << wing_marker_y[1] << "," <<wing_marker_z[1] << ",";
+                file << wing_marker_x[2] << "," << wing_marker_y[2] << "," <<wing_marker_z[2] << ",";
+                file << wing_marker_x[3] << "," << wing_marker_y[3] << "," <<wing_marker_z[3] << ",";
+                file << wing_marker_x[4] << "," << wing_marker_y[4] << "," <<wing_marker_z[4] << ",";
+                file << wing_marker_x[5] << "," << wing_marker_y[5] << "," <<wing_marker_z[5] << ",";
+                // file << wing_marker_x[6] << "," << wing_marker_y[6] << "," <<wing_marker_z[6] << ",";
+                // file << wing_marker_x[7] << "," << wing_marker_y[7] << "," <<wing_marker_z[7] << "\n";
             }
 
         }
 
         else{
             if(prev_record == 1) {
+                RCLCPP_INFO(this->get_logger(), "CSV OK");
+
                 file.close();
                 prev_record = 0;
             }
@@ -188,7 +207,6 @@ void OrnibiBot::RestreamData(){
 
 void OrnibiBot::OptitrackCallback(const optitrack_msgs::msg::OptitrackData &optitrack_data) const{
 
-    if(rclcpp::ok()){
         wing_marker_x[0] = optitrack_data.marker1.x;
         wing_marker_y[0] = optitrack_data.marker1.y;
         wing_marker_z[0] = optitrack_data.marker1.z;
@@ -199,7 +217,7 @@ void OrnibiBot::OptitrackCallback(const optitrack_msgs::msg::OptitrackData &opti
         
         wing_marker_x[2] = optitrack_data.marker3.x;
         wing_marker_y[2] = optitrack_data.marker3.y;
-        wing_marker_z[3] = optitrack_data.marker3.z;
+        wing_marker_z[2] = optitrack_data.marker3.z;
         
         wing_marker_x[3] = optitrack_data.marker4.x;
         wing_marker_y[3] = optitrack_data.marker4.y;
@@ -209,18 +227,18 @@ void OrnibiBot::OptitrackCallback(const optitrack_msgs::msg::OptitrackData &opti
         wing_marker_y[4] = optitrack_data.marker5.y;
         wing_marker_z[4] = optitrack_data.marker5.z;
         
-        wing_marker_x[5] = optitrack_data.marker6.x;
-        wing_marker_y[5] = optitrack_data.marker6.y;
-        wing_marker_z[5] = optitrack_data.marker6.z;
+        // wing_marker_x[5] = optitrack_data.marker6.x;
+        // wing_marker_y[5] = optitrack_data.marker6.y;
+        // wing_marker_z[5] = optitrack_data.marker6.z;
         
-        wing_marker_x[6] = optitrack_data.marker7.x;
-        wing_marker_y[6] = optitrack_data.marker7.y;
-        wing_marker_z[6] = optitrack_data.marker7.z;
+        // wing_marker_x[6] = optitrack_data.marker7.x;
+        // wing_marker_y[6] = optitrack_data.marker7.y;
+        // wing_marker_z[6] = optitrack_data.marker7.z;
         
-        wing_marker_x[7] = optitrack_data.marker8.x;
-        wing_marker_y[7] = optitrack_data.marker8.y;
-        wing_marker_z[7] = optitrack_data.marker8.z;
-    }
+        // wing_marker_x[7] = optitrack_data.marker8.x;
+        // wing_marker_y[7] = optitrack_data.marker8.y;
+        // wing_marker_z[7] = optitrack_data.marker8.z;
+
 }
 
 int main(int argc, char** argv){

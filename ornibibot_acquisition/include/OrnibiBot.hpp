@@ -40,13 +40,20 @@ class OrnibiBot : public rclcpp::Node{
         uint8_t data_sent;
         float flapping_frequency;
         uint8_t flapping_mode;
+        int8_t flapping_offset;
+        uint8_t flapping_amplitude;
+        
         bool flag_record = 0;
+        uint8_t buffer_parameter[6];
+        
 
         SerialPort *com_;
         PacketSerial *data_serial_;
 
         data3D *force_;
         data3D *moment_;
+
+        bool prev_record = 0;
 
         mutable std::array<float, 8> wing_marker_x;
         mutable std::array<float, 8> wing_marker_y;
@@ -57,7 +64,7 @@ class OrnibiBot : public rclcpp::Node{
         std::ofstream file;
 
 
-        const char* _port = "/dev/ttyACM1";
+        const char* _port = "/dev/ttyACM0";
 
         std::thread serial_thread_;        
         
