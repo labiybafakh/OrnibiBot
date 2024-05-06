@@ -28,6 +28,9 @@ OrnibiBot::OrnibiBot() : Node("OrnibiBot"){
 
     com_->serial_port = open(_port, O_RDWR | O_NOCTTY);
 
+    RCLCPP_INFO(this->get_logger(), "OrnibiBot Data Acquisition V1.1.");
+
+
     if(com_->serial_port == -1) RCLCPP_ERROR(this->get_logger(), "Failed to connnect to the serial port.");
     else{
         RCLCPP_INFO(this->get_logger(), "Device is connected.");
@@ -83,6 +86,7 @@ void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
         flapping_mode = msg.flapping_mode;
         flapping_offset = msg.flapping_offset;
         flapping_amplitude = msg.flapping_amplitude;
+        flapping_downstroke_periode = msg.flapping_down_stroke_percentage;
         flag_record = msg.record_data;
         
         buffer_parameter[0] = (uint8_t)0xFF;
@@ -90,10 +94,11 @@ void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
         buffer_parameter[2] = (uint8_t)flapping_mode;
         buffer_parameter[3] = (uint8_t)(flapping_offset + 100);
         buffer_parameter[4] = (uint8_t)flapping_amplitude;
-        buffer_parameter[5] = (uint8_t)0xEE;
+        buffer_parameter[5] = (uint8_t)flapping_downstroke_periode;
+        buffer_parameter[6] = (uint8_t)0xEE;
 
         // for(int i = 0; i < sizeof(buffer_parameter); i++) std::cout << i << "," << buffer_parameter[i] << std::endl;
-        // RCLCPP_INFO(this->get_logger(), "%u %u %u %u", flapping_frequency, flapping_mode, flapping_offset, flapping_amplitude);
+        // RCLCPP_INFO(this->get_logger(), "%f %d %d %d %d", flapping_frequency, flapping_mode, flapping_offset, flapping_amplitude, flapping_downstroke_periode);
     }
 }
 

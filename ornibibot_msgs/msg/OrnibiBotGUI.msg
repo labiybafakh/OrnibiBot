@@ -4,3 +4,4 @@ float32 flapping_frequency
 uint8 flapping_amplitude
 int8 flapping_offset    
 bool record_data
+uint8 flapping_down_stroke_percentage
