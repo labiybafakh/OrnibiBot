@@ -56,6 +56,8 @@ OrnibiBot::OrnibiBot() : Node("OrnibiBot"){
     timer_serial    = this->create_wall_timer(5ms, std::bind(&OrnibiBot::SerialCallback, this));
     timer_restream  = this->create_wall_timer(5ms, std::bind(&OrnibiBot::RestreamData, this));
 
+    RCLCPP_INFO(this->get_logger(), "Data Acquisition has been started");
+
 }
 
 OrnibiBot::~OrnibiBot(){
@@ -89,6 +91,13 @@ void OrnibiBot::GUICallback(const ornibibot_msgs::msg::OrnibiBotGUI &msg){
         flapping_downstroke_periode = msg.flapping_down_stroke_percentage;
         flag_record = msg.record_data;
         
+        if(flapping_mode == 0) flapping_pattern = "sine";
+        else if(flapping_mode == 1) flapping_pattern = "square";
+        else if(flapping_mode == 2) flapping_pattern = "triangle";
+        else if(flapping_mode == 3) flapping_pattern = "saw";
+        else if(flapping_mode == 4) flapping_pattern = "rev_saw";
+        else if(flapping_mode == 5) flapping_pattern = "adjusted_sine";
+         
         buffer_parameter[0] = (uint8_t)0xFF;
         buffer_parameter[1] = (uint8_t)(flapping_frequency*10);
         buffer_parameter[2] = (uint8_t)flapping_mode;
@@ -132,7 +141,7 @@ void OrnibiBot::DecodePacket(SerialPort *data_in){
         data_serial_->power_right  = ((int16_t)  (data_in->buffer_serial[14] | (data_in->buffer_serial[15] << 8))) * 0.01f;
     // RCLCPP_INFO(this->get_logger(), "timestamp: %f", data_->actual_left);
     // }
-        RCLCPP_INFO(this->get_logger(), "Timestamp: %d, actual left: %.2f, desired left: %.2f", data_serial_->timestamp, data_serial_->actual_left, data_serial_->actual_left);
+        // RCLCPP_INFO(this->get_logger(), "Timestamp: %d, actual left: %.2f, desired left: %.2f", data_serial_->timestamp, data_serial_->actual_left, data_serial_->actual_left);
 
 }
 
@@ -175,13 +184,13 @@ void OrnibiBot::RestreamData(){
                 file.open(file_name_);
 
                 // Headers
-                file << "timestamp,desired_left,actual_left,desired_right,actual_right,power_left,power_right,force_x,force_z,moment_y,marker1_x,marker1_y,marker1_z,marker2_x,marker2_y,marker2_z,marker3_x,marker3_y,marker3_z,marker4_x,marker4_y,marker4_z,marker5_x,marker5_y,marker5_z,marker6_x,marker6_y,marker6_z,marker7_x,marker7_y,marker7_z,marker8_x,marker8_y,marker8_z\n";
+                file << "timestamp,frequency,pattern,desired_left,actual_left,desired_right,actual_right,power_left,power_right,force_x,force_z,moment_y,marker1_x,marker1_y,marker1_z,marker2_x,marker2_y,marker2_z,marker3_x,marker3_y,marker3_z,marker4_x,marker4_y,marker4_z,marker5_x,marker5_y,marker5_z\n";
             
                 prev_record = 1;
             }
             else{
 
-                file << data_serial_->timestamp << ",";
+                file << data_serial_->timestamp << "," << flapping_frequency << "," << flapping_pattern << ",";
                 file << data_serial_->desired_left << "," << data_serial_->actual_left << ",";
                 file << data_serial_->desired_right << "," << data_serial_->actual_right << ",";
                 file << data_serial_->power_left << "," << data_serial_->power_right << ",";
@@ -190,10 +199,7 @@ void OrnibiBot::RestreamData(){
                 file << wing_marker_x[1] << "," << wing_marker_y[1] << "," <<wing_marker_z[1] << ",";
                 file << wing_marker_x[2] << "," << wing_marker_y[2] << "," <<wing_marker_z[2] << ",";
                 file << wing_marker_x[3] << "," << wing_marker_y[3] << "," <<wing_marker_z[3] << ",";
-                file << wing_marker_x[4] << "," << wing_marker_y[4] << "," <<wing_marker_z[4] << ",";
-                file << wing_marker_x[5] << "," << wing_marker_y[5] << "," <<wing_marker_z[5] << ",";
-                // file << wing_marker_x[6] << "," << wing_marker_y[6] << "," <<wing_marker_z[6] << ",";
-                // file << wing_marker_x[7] << "," << wing_marker_y[7] << "," <<wing_marker_z[7] << "\n";
+                file << wing_marker_x[4] << "," << wing_marker_y[4] << "," <<wing_marker_z[4] << "\n";
             }
 
         }

@@ -40,6 +40,8 @@ class OrnibiBot : public rclcpp::Node{
         uint8_t data_sent;
         float flapping_frequency;
         uint8_t flapping_mode;
+        std::string flapping_pattern;
+
         int8_t flapping_offset;
         uint8_t flapping_amplitude;
         uint8_t flapping_downstroke_periode;
