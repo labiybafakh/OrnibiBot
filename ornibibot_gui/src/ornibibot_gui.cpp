@@ -136,6 +136,7 @@ int main(int argc, char** argv)
     flapping_param_.amplitude = 0;
     flapping_param_.patterns = 0;
     flapping_param_.frequency = 0;
+    flapping_param_.down_stroke_periode = 50;
 
     // Main loop
     while (!glfwWindowShouldClose(gui_window) && rclcpp::ok())
@@ -157,7 +158,8 @@ int main(int argc, char** argv)
 
             ImGui::Begin("Control Panel"); // Create a window called "Hello, world!" and append into it.
             ImGui::Text("Flapping parameters:");
-            
+        
+
             ImGui::Text("Pattern:");
             ImGui::SameLine();
             if(ImGui::Button("Sine")) flapping_param_.patterns = sine;
@@ -169,6 +171,8 @@ int main(int argc, char** argv)
             if(ImGui::Button("Saw")) flapping_param_.patterns = saw;
             ImGui::SameLine();
             if(ImGui::Button("Rev-Saw")) flapping_param_.patterns = rev_saw;
+            ImGui::SameLine();
+            if(ImGui::Button("Adjusted Sine")) flapping_param_.patterns = adjusted_sine;
         
             
             if(ImGui::Button(" - "))    if(flapping_param_.frequency > 0) flapping_param_.frequency-= 0.5;
@@ -179,6 +183,15 @@ int main(int argc, char** argv)
             ImGui::SameLine();
             if(ImGui::Button("Zero Frequency"))   flapping_param_.frequency  = 0;       
     
+            // if(ImGui::Button("-"))
+            //     if(flapping_param_.down_stroke_periode > 10)flapping_param_.down_stroke_periode -= 10;
+            // ImGui::SameLine();
+            // ImGui::Text("Down-stroke Periode: %d", flapping_param_.down_stroke_periode);
+            // ImGui::SameLine();
+            // if(ImGui::Button("+"))
+            //     if(flapping_param_.down_stroke_periode < 90)flapping_param_.down_stroke_periode += 10;
+            // ImGui::SameLine();
+            // if(ImGui::Button("Neutral")) flapping_param_.down_stroke_periode = 50; 
         
             if(ImGui::Button("  -  ")) 
                 if(flapping_param_.offset > -25) flapping_param_.offset -= 5;
@@ -188,18 +201,19 @@ int main(int argc, char** argv)
             if(ImGui::Button("  +  "))
                 if(flapping_param_.offset < 25) flapping_param_.offset += 5;
             ImGui::SameLine();
-            if(ImGui::Button("Zero Offset")) flapping_param_.offset = 0;            
-        
+            if(ImGui::Button("Zero Offset")) flapping_param_.offset = 0;               
+         
             if(ImGui::Button("-"))
                 if(flapping_param_.amplitude > 5)flapping_param_.amplitude -= 5;
             ImGui::SameLine();
             ImGui::Text("Amplitude: %d", flapping_param_.amplitude);
             ImGui::SameLine();
             if(ImGui::Button("+"))
-                if(flapping_param_.amplitude < 50)flapping_param_.amplitude += 5;
+                if(flapping_param_.amplitude < 60)flapping_param_.amplitude += 5;
             ImGui::SameLine();
             if(ImGui::Button("Zero Amplitude")) flapping_param_.amplitude = 0;    
-         
+
+            ImGui::SliderInt("Down-stroke Periode", &flapping_param_.down_stroke_periode, 10, 90);
 
             if(ImGui::Button(data)) {
                 if (!strcmp(data, "  Record Data  ")) {
@@ -217,6 +231,7 @@ int main(int argc, char** argv)
             gui_data->flapping_frequency = flapping_param_.frequency;
             gui_data->flapping_offset = flapping_param_.offset;
             gui_data->flapping_mode = flapping_param_.patterns;
+            gui_data->flapping_down_stroke_percentage = flapping_param_.down_stroke_periode;
             gui_data->record_data = flag_record;
 
             gui_pub->publish(*gui_data);

@@ -9,7 +9,8 @@ enum pattern{
     square,
     triangle,
     saw,
-    rev_saw
+    rev_saw,
+    adjusted_sine
 };
 
 struct marker{
@@ -23,6 +24,7 @@ typedef struct{
     float frequency;
     int amplitude;
     int offset;
+    int down_stroke_periode;
 } flapping_param;
 
 #endif
